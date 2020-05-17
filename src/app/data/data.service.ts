@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { DataModel } from 'src/models/data';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, shareReplay } from 'rxjs/operators';
 import { Body } from '../../models/body';
 
 @Injectable({
@@ -10,10 +10,17 @@ import { Body } from '../../models/body';
 })
 export class DataService {
 
+  private cached: Observable<DataModel>;
+
   constructor(private http: HttpClient) { }
 
   public getData() {
-    return this.http.get<DataModel>('assets/data/rss.json');
+    if (!this.cached) {
+      this.cached = this.http.get<DataModel>('assets/data/rss.json').pipe(
+        shareReplay(1)
+      );
+    }
+    return this.cached;
   }
 
   public getBodies() {
