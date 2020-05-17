@@ -1,0 +1,74 @@
+<form [formGroup]="form">
+  <mat-form-field>
+    <mat-label>Body</mat-label>
+    <mat-select formControlName="body">
+      <mat-option *ngFor="let body of bodies$ | async" [value]="body.name">{{
+        body.name
+      }}</mat-option>
+    </mat-select>
+  </mat-form-field>
+  <br />
+  <mat-form-field>
+    <mat-label># of satellites</mat-label>
+    <input matInput type="number" formControlName="size" min="3" />
+  </mat-form-field>
+  <br />
+  <mat-form-field>
+    <mat-label>Altitude (km)</mat-label>
+    <input matInput type="number" formControlName="alt" />
+  </mat-form-field>
+  <button mat-raised-button (click)="useStationary()">Stationary</button>
+</form>
+
+<div>
+  <svg
+    version="1.1"
+    baseProfile="full"
+    [attr.viewBox]="'0 0 ' + viewbox + ' ' + viewbox"
+    width="600"
+    height="600"
+  >
+    <rect width="100%" height="100%" fill="white" />
+    <circle
+      cx="50%"
+      cy="50%"
+      r="100"
+      stroke="black"
+      fill="black"
+      stroke-width="0"
+    />
+    <circle
+      cx="50%"
+      cy="50%"
+      [attr.r]="minLos"
+      stroke="grey"
+      fill="transparent"
+      [attr.stroke-width]="viewbox / 800"
+      [attr.stroke-dasharray]="viewbox / 160 + ',' + viewbox / 160"
+    />
+    <circle
+      cx="50%"
+      cy="50%"
+      [attr.r]="altitude"
+      [attr.stroke]="orbitColor"
+      fill="transparent"
+      [attr.stroke-width]="viewbox / 800"
+    />
+    <circle
+      *ngFor="let sat of satPositions"
+      [attr.cx]="sat[1]"
+      [attr.cy]="sat[0]"
+      [attr.r]="viewbox / 160"
+      fill="green"
+    />
+    <line
+      *ngFor="let conn of connections"
+      [attr.x1]="satPositions[conn[0]][1]"
+      [attr.y1]="satPositions[conn[0]][0]"
+      [attr.x2]="satPositions[conn[1]][1]"
+      [attr.y2]="satPositions[conn[1]][0]"
+      stroke="green"
+      [attr.stroke-width]="viewbox / 800"
+    />
+  </svg>
+</div>
