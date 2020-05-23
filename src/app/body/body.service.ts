@@ -21,6 +21,10 @@ export class BodyService {
     }
   }
 
+  public getSoi(body: Body) {
+    return this.orbit.getSoi(body);
+  }
+
   public getStationarySma(body: Body) {
     return this.orbit.getSmaForPeriod(this.getRotationPeriod(body), body);
   }

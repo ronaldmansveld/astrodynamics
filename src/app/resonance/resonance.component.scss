@@ -1,0 +1,15 @@
+:host {
+  display: flex;
+  flex-flow: column nowrap;
+}
+
+.top {
+  display: flex;
+  flex-flow: row wrap;
+}
+
+.data {
+  padding-left: 2em;
+  font-family: serif;
+  font-style: italic;
+}

@@ -34,4 +34,12 @@ export class OrbitService {
     resonant.push(a * Math.pow(1 - 1 / numSats, 2 / 3));
     return resonant;
   }
+
+  public getSemiMajorAxis(apoapsis: number, periapsis: number) {
+    return .5 * (apoapsis + periapsis);
+  }
+
+  public getSemiMinorAxis(sma: number, periapsis: number) {
+    return Math.sqrt(Math.pow(sma, 2) - Math.pow(sma - periapsis, 2));
+  }
 }

@@ -1,74 +1,129 @@
-<form [formGroup]="form">
-  <mat-form-field>
-    <mat-label>Body</mat-label>
-    <mat-select formControlName="body">
-      <mat-option *ngFor="let body of bodies$ | async" [value]="body.name">{{
-        body.name
-      }}</mat-option>
-    </mat-select>
-  </mat-form-field>
-  <br />
-  <mat-form-field>
-    <mat-label># of satellites</mat-label>
-    <input matInput type="number" formControlName="size" min="3" />
-  </mat-form-field>
-  <br />
-  <mat-form-field>
-    <mat-label>Altitude (km)</mat-label>
-    <input matInput type="number" formControlName="alt" />
-  </mat-form-field>
-  <button mat-raised-button (click)="useStationary()">Stationary</button>
-</form>
+<div class="top">
+  <form [formGroup]="form">
+    <mat-form-field>
+      <mat-label>Body</mat-label>
+      <mat-select formControlName="body">
+        <mat-option *ngFor="let body of bodies$ | async" [value]="body.name">{{
+          body.name
+        }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <br />
+    <mat-form-field>
+      <mat-label># of satellites</mat-label>
+      <input matInput type="number" formControlName="size" min="3" />
+    </mat-form-field>
+    &nbsp;
+    <mat-checkbox formControlName="useDive" *ngIf="resonants.dive"
+      >Use dive orbit</mat-checkbox
+    >
+    <br />
+    <mat-form-field>
+      <mat-label>Altitude (km)</mat-label>
+      <input matInput type="number" formControlName="alt" step="10" />
+    </mat-form-field>
+    &nbsp;
+    <button mat-raised-button (click)="useStationary()" *ngIf="body">
+      Stationary
+    </button>
+    &nbsp;
+    <button mat-raised-button (click)="useLOS()" *ngIf="body">
+      Lowest
+    </button>
+  </form>
 
-<div>
+  <div class="data" *ngIf="body && altitude">
+    Ap<sub>s</sub> = {{ altitude - body.r }}m &nbsp; Pe<sub>s</sub> =
+    {{ altitude - body.r }}<br />
+    T<sub>s</sub> = {{ satPeriod }}s<br />
+    <br />
+    Ap<sub>L</sub> = {{ resonant[0] - body.r | round: 2 }}m &nbsp; Pe<sub
+      >L</sub
+    >
+    = {{ resonant[1] - body.r | round: 2 }}<br />
+    T<sub>L</sub> = {{ launcherPeriod }}s<br />
+    <br />
+    Δv<sub>s</sub> = {{ satDeltaV | round: 2 }} ms⁻¹
+  </div>
+</div>
+
+<div class="bottom">
   <svg
     version="1.1"
     baseProfile="full"
-    [attr.viewBox]="'0 0 ' + viewbox + ' ' + viewbox"
+    [attr.viewBox]="
+      -normalize(viewbox) +
+      ' ' +
+      -normalize(viewbox) +
+      ' ' +
+      2 * normalize(viewbox) +
+      ' ' +
+      2 * normalize(viewbox)
+    "
     width="600"
     height="600"
+    *ngIf="body"
   >
-    <rect width="100%" height="100%" fill="white" />
+    <rect x="-50%" y="-50%" width="100%" height="100%" fill="white" />
     <circle
-      cx="50%"
-      cy="50%"
-      r="100"
-      stroke="black"
-      fill="black"
+      *ngIf="body && body.atm > 0"
+      cx="0"
+      cy="0"
+      [attr.r]="normalize(body.r + body.atm)"
+      stroke="lightblue"
+      fill="lightblue"
+    ></circle>
+    <circle
+      cx="0"
+      cy="0"
+      [attr.r]="normalize(body.r)"
+      stroke="darkblue"
+      fill="darkblue"
       stroke-width="0"
     />
     <circle
-      cx="50%"
-      cy="50%"
-      [attr.r]="minLos"
+      cx="0"
+      cy="0"
+      [attr.r]="normalize(minLos)"
       stroke="grey"
       fill="transparent"
-      [attr.stroke-width]="viewbox / 800"
-      [attr.stroke-dasharray]="viewbox / 160 + ',' + viewbox / 160"
+      [attr.stroke-width]="normalize(viewbox) / 800"
+      [attr.stroke-dasharray]="
+        normalize(viewbox) / 160 + ',' + normalize(viewbox) / 160
+      "
     />
     <circle
-      cx="50%"
-      cy="50%"
-      [attr.r]="altitude"
+      cx="0"
+      cy="0"
+      [attr.r]="normalize(altitude)"
       [attr.stroke]="orbitColor"
       fill="transparent"
-      [attr.stroke-width]="viewbox / 800"
+      [attr.stroke-width]="normalize(viewbox) / 800"
     />
     <circle
       *ngFor="let sat of satPositions"
-      [attr.cx]="sat[1]"
-      [attr.cy]="sat[0]"
-      [attr.r]="viewbox / 160"
+      [attr.cx]="normalize(sat[1])"
+      [attr.cy]="normalize(sat[0])"
+      [attr.r]="normalize(viewbox) / 80"
       fill="green"
     />
     <line
       *ngFor="let conn of connections"
-      [attr.x1]="satPositions[conn[0]][1]"
-      [attr.y1]="satPositions[conn[0]][0]"
-      [attr.x2]="satPositions[conn[1]][1]"
-      [attr.y2]="satPositions[conn[1]][0]"
-      stroke="green"
-      [attr.stroke-width]="viewbox / 800"
+      [attr.x1]="normalize(satPositions[conn[0]][1])"
+      [attr.y1]="normalize(satPositions[conn[0]][0])"
+      [attr.x2]="normalize(satPositions[conn[1]][1])"
+      [attr.y2]="normalize(satPositions[conn[1]][0])"
+      stroke="lightgreen"
+      [attr.stroke-width]="normalize(viewbox) / 320"
     />
+    <ellipse
+      cx="0"
+      [attr.cy]="normalize(satPositions[0][0] + resonantData[0])"
+      [attr.ry]="normalize(resonantData[0])"
+      [attr.rx]="normalize(resonantData[1])"
+      *ngIf="resonantData[0]"
+      stroke="purple"
+      fill="transparent"
+    ></ellipse>
   </svg>
 </div>
